@@ -8,8 +8,8 @@ clc;
 %bundle adjustment and blending
 p0.img = imageSystem.readGrayImage('data/grail/grail00.jpg');
 p1.img = imageSystem.readGrayImage('data/grail/grail01.jpg');
-p0.feature = corner(p0.img);
-p1.feature = corner(p1.img);
+p0.feature = imageSystem.detectFeature(p0.img,8);
+p1.feature = imageSystem.detectFeature(p1.img,8);
 
 match = imageSystem.featureMatch(p0,p1);
 tempImg = [p0.img,p1.img];
@@ -24,5 +24,4 @@ for i = 1 :size(match,1)
 end
 plot(p0.feature(match(:,1),1), p0.feature(match(:,1),2),'r*');
 plot(p1.feature(match(:,2),1) + 384, p1.feature(match(:,2),2),'r*');
-
 
