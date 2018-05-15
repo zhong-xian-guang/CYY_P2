@@ -80,8 +80,8 @@ classdef imageSystem
             
             r = 6;  % tuening constent
             
-            minN = 500;
-            maxN = 1000;
+            minN = 200;
+            maxN = 250;
             thrshold = 20;
             Mx = ordfilt2(R,r^2,ones(r));%file the maxman within the r
             Rt = (R==Mx)&(R>thrshold);
@@ -111,8 +111,8 @@ classdef imageSystem
                 end
             end
             result = sortrows(result, 1);
-            test = sortrows(result, 1);
-            ret =  result(size(result,1)-(minN-1):end,2:end);
+            test
+            ret =  result(size(result,1)-199:end,2:end);
         end
 
         
