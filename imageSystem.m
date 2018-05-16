@@ -7,7 +7,55 @@ classdef imageSystem
             image = imread(path);
             img = rgb2gray(image);
         end
-
+        function ret = cylinderProjection(p,f)
+            %x' = f*tan^-1(x/f)
+            %y' = f*(y/(sqrt(x^2+f^2)))
+            [h w]= size(p.img);
+            cx = w/2;
+            cy = h/2;
+            ret.img = uint8(zeros(h,w));
+            for i=1:h
+                for j=1:w
+                    fx = j-cx;
+                    fy = i-cy;
+                    tx = f*atan(fx/f);
+                    ty = f*(fy/(sqrt(fx^2+f^2)));
+                    tx = floor(tx);
+                    ty = floor(ty);
+                    tx = tx+cx;
+                    ty = ty+cy;
+                    tx(tx<=0) = 1;
+                    ty(ty<=0) = 1;
+                    tx(tx>w) = w;
+                    ty(ty> h) = h;
+                    ret.img(ty,tx) = p.img(i,j);
+                end
+            end
+            for i=1:size(p.feature,1)
+                fx = p.feature(i,1)-cx;
+                fy = p.feature(i,2)-cy;
+                    tx = f*atan(fx/f);
+                    ty = f*(fy/(sqrt(fx^2+f^2)));
+                    tx = floor(tx);
+                    ty = floor(ty);
+                    tx = tx+cx;
+                    ty = ty+cy;
+                    tx(tx<=0) = 1;
+                    ty(ty<=0) = 1;
+                    tx(tx>w) = w;
+                    ty(ty> h) = h;
+                    ret.feature(i,1) = tx;
+                    ret.feature(i,2) = ty;
+            end
+            %figure;
+            %imshow(p.img);
+            %hold on
+            %plot(p.feature(:,1),p.feature(:,2),'r*');
+            %figure;
+            %imshow(ret.img);
+            %hold on
+            %plot(ret.feature(:,1),ret.feature(:,2),'r*');
+        end
         function match = featureMatch(p0, p1)
             match = [];
             for i = 1 : size(p0.feature,1)

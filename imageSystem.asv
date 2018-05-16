@@ -7,7 +7,33 @@ classdef imageSystem
             image = imread(path);
             img = rgb2gray(image);
         end
-
+        function ret = cylinderProjection(p,f)
+            %x' = f*tan^-1(x/f)
+            %y' = f*(y/(sqrt(x^2+f^2)))
+            [h w]= size(p.img);
+            cx = w/2;
+            cy = h/2;
+            ret.img = uint8(zeros(h,w));
+            for i=1:h
+                for j=1:w
+                    fx = j-cx;
+                    fy = i-cy;
+                    tx = f*atan(fx/f);
+                    ty = f*(fy/(sqrt(fx^2+f^2)));
+                    tx = floor(tx);
+                    ty = floor(ty);
+                    tx = tx+cx;
+                    ty = ty+cy;
+                    tx(tx<=0) = 1;
+                    ty(ty<=0) = 1;
+                    tx(tx>w) = w;
+                    ty(ty> h) = h;
+                    ret.img(ty,tx) = p.img(i,j);
+                end
+            end
+            for i=0:si
+            imshow(ret.img);
+        end
         function match = featureMatch(p0, p1)
             match = [];
             for i = 1 : size(p0.feature,1)
@@ -122,11 +148,19 @@ classdef imageSystem
                 index1 = match(i,2)
                 tempOffset = [tempOffset;[p0.feature(index0,1) - p1.feature(index1,1) , p0.feature(index0,2) - p1.feature(index1,2)]]
             end
-            min = 99999999
+            threshold = 10
+            maxCount = 0;
             for i = 1 :size(tempOffset,1)
-                d = 
+                count = 0;
                 for j = 1 :size(tempOffset,1)
-                    
+                    d = (tempOffset(i,1) - tempOffset(j,1)).^2 + (tempOffset(i,2) - tempOffset(j,2)).^2;
+                    if d < threshold
+                        count = count + 1;
+                    end
+                end
+                if maxCount < count
+                    maxCount = count;
+                    offset = tempOffset(i,:);
                 end
             end
         end
