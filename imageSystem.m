@@ -47,14 +47,6 @@ classdef imageSystem
                     ret.feature(i,1) = tx;
                     ret.feature(i,2) = ty;
             end
-            %figure;
-            %imshow(p.img);
-            %hold on
-            %plot(p.feature(:,1),p.feature(:,2),'r*');
-            %figure;
-            %imshow(ret.img);
-            %hold on
-            %plot(ret.feature(:,1),ret.feature(:,2),'r*');
         end
         function match = featureMatch(p0, p1)
             match = [];
