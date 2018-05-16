@@ -80,8 +80,8 @@ classdef imageSystem
             
             r = 6;  % tuening constent
             
-            minN = 200;
-            maxN = 250;
+            minN = 500;
+            maxN = 1000;
             thrshold = 20;
             Mx = ordfilt2(R,r^2,ones(r));%file the maxman within the r
             Rt = (R==Mx)&(R>thrshold);
@@ -111,11 +111,25 @@ classdef imageSystem
                 end
             end
             result = sortrows(result, 1);
-            test
-            ret =  result(size(result,1)-199:end,2:end);
+            test = sortrows(result, 1);
+            ret =  result(size(result,1)-(minN-1):end,2:end);
         end
 
-        
+        function offset = ransac(p0,p1,match)
+            tempOffset = []
+            for i = 1 : size(match,1)
+                index0 = match(i,1);
+                index1 = match(i,2)
+                tempOffset = [tempOffset;[p0.feature(index0,1) - p1.feature(index1,1) , p0.feature(index0,2) - p1.feature(index1,2)]]
+            end
+            min = 99999999
+            for i = 1 :size(tempOffset,1)
+                d = 
+                for j = 1 :size(tempOffset,1)
+                    
+                end
+            end
+        end
     end
 end
 

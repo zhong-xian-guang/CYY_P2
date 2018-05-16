@@ -115,7 +115,29 @@ classdef imageSystem
             ret =  result(size(result,1)-(minN-1):end,2:end);
         end
 
-        
+        function offset = ransac(p0,p1,match)
+            tempOffset = []
+            for i = 1 : size(match,1)
+                index0 = match(i,1);
+                index1 = match(i,2)
+                tempOffset = [tempOffset;[p0.feature(index0,1) - p1.feature(index1,1) , p0.feature(index0,2) - p1.feature(index1,2)]]
+            end
+            threshold = 10
+            maxCount = 0;
+            for i = 1 :size(tempOffset,1)
+                count = 0;
+                for j = 1 :size(tempOffset,1)
+                    d = (tempOffset(i,1) - tempOffset(j,1)).^2 + (tempOffset(i,2) - tempOffset(j,2)).^2;
+                    if d < threshold
+                        count = count + 1;
+                    end
+                end
+                if maxCount < count
+                    maxCount = count;
+                    offset = tempOffset(i,:);
+                end
+            end
+        end
     end
 end
 

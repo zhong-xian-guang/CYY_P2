@@ -11,14 +11,13 @@ p1.img = imageSystem.readGrayImage('data/grail/grail01.jpg');
 p0.feature = imageSystem.detectFeature(p0.img,8);
 p1.feature = imageSystem.detectFeature(p1.img,8);
 
-match = imageSystem.featureMatch(p0,p1);
-offset = imageSystem.ransac(p0,p1,match);
+%match = imageSystem.featureMatch(p0,p1);
+%offset = imageSystem.ransac(p0,p1,match);
 
-offset = [-201, -2]
+offset = [110, -38]
 ttt = zeros(size(p0.img,1) + abs(offset(1,2)), size(p0.img,2) + abs(offset(1,1)),'uint8');
-ttt(3:514 , 202:585) = p0.img;
-ttt(1:512 , 1:384) = p1.img;
-
+ttt(39:550 , 1:384) = p1.img;
+ttt(1:512 , 111:494) = p0.img;
 imshow(ttt);
 
 %{
