@@ -6,20 +6,34 @@ clc;
 %feature matching(Harris or MSOP)
 %image matching
 %bundle adjustment and blending
-p0.img = imageSystem.readGrayImage('data/grail/grail00.jpg');
-p1.img = imageSystem.readGrayImage('data/grail/grail01.jpg');
-p0.feature = imageSystem.detectFeature(p0.img,8);
-p1.feature = imageSystem.detectFeature(p1.img,8);
+BasePath = 'data/grail/';
+PicName = 'grail';
+PicType = '.jpg';
+PicSNumber = 0;
+Number = 4;
+p = cell(Number,1);
+for i=1:Number
+    n = i+PicSNumber-1;
+    if(n<10)
+        ns = strcat('0',num2str(n));
+    else
+        ns = num2str(n);
+    end
+    S = strcat(BasePath,PicName,ns,PicType);
+    tempP.img = imageSystem.readGrayImage(S);
+    tempP.feature = imageSystem.detectFeature(tempP.img,8);
+    tempP = imageSystem.cylinderProjection(tempP,628);
+    p{i} = tempP;
 
-match = imageSystem.featureMatch(p0,p1);
-offset = imageSystem.ransac(p0,p1,match);
+end
+result = imageSystem.blending(p);
 
-offset = [-201, -2]
-ttt = zeros(size(p0.img,1) + abs(offset(1,2)), size(p0.img,2) + abs(offset(1,1)),'uint8');
-ttt(3:514 , 202:585) = p0.img;
-ttt(1:512 , 1:384) = p1.img;
+%offset = [-197, -4]
+%ttt = zeros(size(p0.img,1) + abs(offset(1,2)), size(p0.img,2) + abs(offset(1,1)),'uint8');
+%ttt(5:516 , 198:581) = p0.img;
+%ttt(1:512 , 1:384) = p1.img;
 
-imshow(ttt);
+imshow(result);
 
 %{
 tempImg = [p0.img,p1.img];

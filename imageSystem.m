@@ -7,6 +7,61 @@ classdef imageSystem
             image = imread(path);
             img = rgb2gray(image);
         end
+        function img = blending(p)
+            %treat p as cell of picture with size n
+            [h w] = size(p{1}.img);
+            n = size(p,1);
+            offsets = cell(n,1);
+            offsets{1} = [0,0];
+            boundary = [0 0 ; 0 0];
+            track = offsets{1};
+            for i=1:n-1
+                match = imageSystem.featureMatch(p{i},p{i+1});
+                offsets{i+1} = -imageSystem.ransac(p{i},p{i+1},match);
+                if(track(1)+offsets{i+1}(1)>boundary(2,1))%max x boundary update
+                    boundary(2,1) = track(1)+offsets{i+1}(1);
+                end
+                if(track(1)+offsets{i+1}(1)<boundary(1,1))%min x boundary update
+                    boundary(1,1) = track(1)+offsets{i+1}(1);
+                end
+                if(track(2)+offsets{i+1}(2)>boundary(2,2))%max y boundary update
+                    boundary(2,2) = track(2)+offsets{i+1}(2);
+                end
+                if(track(2)+offsets{i+1}(2)<boundary(1,2))%min y boundary update
+                    boundary(1,2) = track(2)+offsets{i+1}(2);
+                end
+                track = track + offsets{i+1};
+            end
+            start = [-boundary(1,1),-boundary(1,2)];
+            img = uint8(zeros(h+boundary(2,2)-boundary(1,2),w+boundary(2,1)-boundary(1,1)));
+            offset = start;
+            for k=1:n
+                offset = offsets{k} + offset;
+                %img(offset(2):offset(2)+h , offset(1):offset(1)+w) = p{i}.img;
+                blendL = sqrt(offsets{k}(1)^2+offsets{k}(2)^2);
+                offsetX = offsets{k}(1);
+                [h w] = size(p{k}.img);
+                for i=1:h
+                    for j=1:w
+                        blend = 1;
+                        if(p{k}.img(i,j)==0)
+                        elseif(img(i+offset(2),j+offset(1)) == 0)
+                            img(i+offset(2),j+offset(1)) = p{k}.img(i,j);
+                        else
+                            
+                            if(offsetX >0 & j)
+                                blend = 1 - (j - offsetX < 0) * (j-offsetX)/(offsetX-w)
+                            else
+                                blend = 1 - (j+offsetX>0) * (j+offsetX)/(w+offsetX);
+                            end
+                            img(i+offset(2),j+offset(1)) = p{k}.img(i,j) * blend + (1-blend) * img(i+offset(2),j+offset(1));
+                        end
+                        
+                        
+                    end
+                end
+            end
+        end
         function ret = cylinderProjection(p,f)
             %x' = f*tan^-1(x/f)
             %y' = f*(y/(sqrt(x^2+f^2)))
@@ -177,6 +232,7 @@ classdef imageSystem
                     offset = tempOffset(i,:);
                 end
             end
+            offset = -offset;
         end
     end
 end
