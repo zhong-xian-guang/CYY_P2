@@ -211,13 +211,13 @@ classdef imageSystem
         end
 
         function offset = ransac(p0,p1,match)
-            tempOffset = []
+            tempOffset = [];
             for i = 1 : size(match,1)
                 index0 = match(i,1);
-                index1 = match(i,2)
-                tempOffset = [tempOffset;[p0.feature(index0,1) - p1.feature(index1,1) , p0.feature(index0,2) - p1.feature(index1,2)]]
+                index1 = match(i,2);
+                tempOffset = [tempOffset;[p0.feature(index0,1) - p1.feature(index1,1) , p0.feature(index0,2) - p1.feature(index1,2)]];
             end
-            threshold = 10
+            threshold = 10;
             maxCount = 0;
             for i = 1 :size(tempOffset,1)
                 count = 0;
