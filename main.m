@@ -12,6 +12,7 @@ PicType = '.jpg';
 PicSNumber = 0;
 Number = 4;
 p = cell(Number,1);
+focal = 628;
 for i=1:Number
     n = i+PicSNumber-1;
     if(n<10)
@@ -20,13 +21,14 @@ for i=1:Number
         ns = num2str(n);
     end
     S = strcat(BasePath,PicName,ns,PicType);
-    tempP.img = imageSystem.readGrayImage(S);
+    tempP.colorImg = imageSystem.readColorImage(S);
+    tempP.img = rgb2gray(tempP.colorImg);
     tempP.feature = imageSystem.detectFeature(tempP.img,8);
-    tempP = imageSystem.cylinderProjection(tempP,628);
+    tempP = imageSystem.cylinderProjection(tempP,focal);
     p{i} = tempP;
 
 end
-result = imageSystem.blending(p);
+result = imageSystem.blendingColor(p);
 
 %offset = [-197, -4]
 %ttt = zeros(size(p0.img,1) + abs(offset(1,2)), size(p0.img,2) + abs(offset(1,1)),'uint8');

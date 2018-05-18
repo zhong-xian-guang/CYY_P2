@@ -5,6 +5,7 @@ classdef picture
     properties
         img
         feature
+        colorImg
     end
     
     methods
