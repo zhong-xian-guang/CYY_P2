@@ -6,23 +6,26 @@ clc;
 %feature matching(Harris or MSOP)
 %image matching
 %bundle adjustment and blending
-BasePath = 'data/grail/';
-PicName = 'grail';
+BasePath = 'data/scene1/';
+PicNameS = 'scene1 (';
+picNameE = ')';
 PicType = '.jpg';
-PicSNumber = 0;
-Number = 4;
+PicSNumber = 1;
+Number = 2;
 p = cell(Number,1);
-focal = 628;
+focal = 2355;
 for i=1:Number
     n = i+PicSNumber-1;
-    if(n<10)
+    if(0)
         ns = strcat('0',num2str(n));
     else
         ns = num2str(n);
     end
-    S = strcat(BasePath,PicName,ns,PicType);
+    S = strcat(BasePath,PicNameS,ns,picNameE,PicType);
     tempP.colorImg = imageSystem.readColorImage(S);
     tempP.img = rgb2gray(tempP.colorImg);
+    tempP.colorImg = imresize(tempP.colorImg,0.2);
+    tempP.img = imresize(tempP.img,0.2);
     tempP.feature = imageSystem.detectFeature(tempP.img,8);
     tempP = imageSystem.cylinderProjection(tempP,focal);
     p{i} = tempP;

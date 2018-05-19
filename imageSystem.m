@@ -133,10 +133,10 @@ classdef imageSystem
                     fy = i-cy;
                     tx = f*atan(fx/f);
                     ty = f*(fy/(sqrt(fx^2+f^2)));
-                    tx = floor(tx);
-                    ty = floor(ty);
                     tx = tx+cx;
                     ty = ty+cy;
+                    tx = floor(tx);
+                    ty = floor(ty);
                     tx(tx<=0) = 1;
                     ty(ty<=0) = 1;
                     tx(tx>w) = w;
