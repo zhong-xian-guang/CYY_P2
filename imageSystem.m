@@ -53,7 +53,7 @@ classdef imageSystem
                         else
                             
                             if(offsetX >0 & j)
-                                blend = 1 - (j - offsetX < 0) * (j-offsetX)/(offsetX-w)
+                                blend = 1 - (j - offsetX < 0) * (j-offsetX)/(offsetX-w);
                             else
                                 blend = 1 - (j+offsetX>0) * (j+offsetX)/(w+offsetX);
                             end
@@ -108,7 +108,7 @@ classdef imageSystem
                         else
                             
                             if(offsetX >0 & j)
-                                blend = 1 - (j - offsetX < 0) * (j-offsetX)/(offsetX-w)
+                                blend = 1 - (j - offsetX < 0) * (j-offsetX)/(offsetX-w);
                             else
                                 blend = 1 - (j+offsetX>0) * (j+offsetX)/(w+offsetX);
                             end
@@ -121,6 +121,7 @@ classdef imageSystem
             end
         end
         function ret = cylinderProjection(p,f)
+            ret = p;
             %x' = f*tan^-1(x/f)
             %y' = f*(y/(sqrt(x^2+f^2)))
             [h w]= size(p.img);
@@ -150,10 +151,11 @@ classdef imageSystem
                 fy = p.feature(i,2)-cy;
                     tx = f*atan(fx/f);
                     ty = f*(fy/(sqrt(fx^2+f^2)));
-                    tx = floor(tx);
-                    ty = floor(ty);
                     tx = tx+cx;
                     ty = ty+cy;
+                    tx = floor(tx);
+                    ty = floor(ty);
+                    
                     tx(tx<=0) = 1;
                     ty(ty<=0) = 1;
                     tx(tx>w) = w;
@@ -214,8 +216,14 @@ classdef imageSystem
                 end
             end
         end
-        
-        function ret = detectFeature(image,windowSize)
+        function showFeature(p)
+            C = p.feature;
+            figure;
+            imshow(p.img);
+            hold on
+            plot(C(:,1),C(:,2),'r*');
+        end
+        function ret = detectFeature(image,N,r)
             %1.color to grayscal
             I = image;
             %2.Spatial derivative calculation
@@ -241,10 +249,8 @@ classdef imageSystem
             R=(1000/max(max(R)))*R;%map response to 1000~0
             Rt = R;%Rt is the response that make to the threshold
             
-            r = 6;  % tuening constent
-            
-            minN = 500;
-            maxN = 1000;
+            minN = N;
+            maxN = N*1.2;
             thrshold = 20;
             Mx = ordfilt2(R,r^2,ones(r));%file the maxman within the r
             Rt = (R==Mx)&(R>thrshold);
@@ -275,6 +281,9 @@ classdef imageSystem
             end
             result = sortrows(result, 1);
             test = sortrows(result, 1);
+            if(size(result,1)-(minN-1)<= 0)
+                error = 1;
+            end
             ret =  result(size(result,1)-(minN-1):end,2:end);
         end
 

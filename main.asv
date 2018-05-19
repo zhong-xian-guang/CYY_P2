@@ -6,19 +6,50 @@ clc;
 %feature matching(Harris or MSOP)
 %image matching
 %bundle adjustment and blending
-p0.img = imageSystem.readGrayImage('data/grail/grail00.jpg');
-p1.img = imageSystem.readGrayImage('data/grail/grail01.jpg');
-p0.feature = imageSystem.detectFeature(p0.img,8);
-p1.feature = imageSystem.detectFeature(p1.img,8);
+BasePath = 'data/scene1/';
+PicNameS = 'scene1 (';
+picNameE = ')';
+PicType = '.jpg';
+PicSNumber = 1;
+Number = 2;
+p = cell(Number,1);
+focal = 2355;
+for i=1:Number
+    n = i+PicSNumber-1;
+    if(0)
+        ns = strcat('0',num2str(n));
+    else
+        ns = num2str(n);
+    end
+    S = strcat(BasePath,PicNameS,ns,picNameE,PicType);
+    tempP.colorImg = imageSystem.readColorImage(S);
+    tempP.img = rgb2gray(tempP.colorImg);
+    tempP.colorImg = imresize(tempP.colorImg,0.2);
+    tempP.img = imresize(tempP.img,0.2);
+    tempP.feature = imageSystem.detectFeature(tempP.img,500,6);
+    tempP = imageSystem.cylinderProjection(tempP,focal);
+    p{i} = tempP;
+end
+featureSample = [50 100 250 500];
+windowSize = [3 6 10 16];
+for i=1:size(windowSize,2);
+    for j=1:size(featureSample,2)
+        for k=1:Number
+            p{k}.feature = imageSystem.detectFeature(p{k}.img,featureSample(j),windowSize(i));
+            p{k} = imageSystem.cylinderProjection(p{k},focal);
+        end
+        result = imageSystem.blendingColor(p);
+        imwrite(result,filename)
+    end
+end
+result = imageSystem.blendingColor(strcat(PicNameS,'F',num2str(featureSample(j)),'W',num2str(windowSize(j))));
 
-%match = imageSystem.featureMatch(p0,p1);
-%offset = imageSystem.ransac(p0,p1,match);
+%offset = [-197, -4]
+%ttt = zeros(size(p0.img,1) + abs(offset(1,2)), size(p0.img,2) + abs(offset(1,1)),'uint8');
+%ttt(5:516 , 198:581) = p0.img;
+%ttt(1:512 , 1:384) = p1.img;
 
-offset = [110, -38]
-ttt = zeros(size(p0.img,1) + abs(offset(1,2)), size(p0.img,2) + abs(offset(1,1)),'uint8');
-ttt(39:550 , 1:384) = p1.img;
-ttt(1:512 , 111:494) = p0.img;
-imshow(ttt);
+imshow(result);
 
 %{
 tempImg = [p0.img,p1.img];

@@ -11,7 +11,7 @@ PicNameS = 'scene1 (';
 picNameE = ')';
 PicType = '.jpg';
 PicSNumber = 1;
-Number = 2;
+Number = 28;
 p = cell(Number,1);
 focal = 2355;
 for i=1:Number
@@ -22,16 +22,29 @@ for i=1:Number
         ns = num2str(n);
     end
     S = strcat(BasePath,PicNameS,ns,picNameE,PicType);
-    tempP.colorImg = imageSystem.readColorImage(S);
-    tempP.img = rgb2gray(tempP.colorImg);
-    tempP.colorImg = imresize(tempP.colorImg,0.2);
-    tempP.img = imresize(tempP.img,0.2);
-    tempP.feature = imageSystem.detectFeature(tempP.img,8);
+    tempP.Oimg = imageSystem.readColorImage(S);
+    tempP.Oimg = imresize(tempP.Oimg,0.2);
+    tempP.colorImg = tempP.Oimg;
+    tempP.img = rgb2gray(tempP.Oimg);
+    tempP.feature = imageSystem.detectFeature(tempP.img,500,6);
     tempP = imageSystem.cylinderProjection(tempP,focal);
     p{i} = tempP;
-
 end
-result = imageSystem.blendingColor(p);
+featureSample = [50 100 250 500];
+windowSize = [3 6 10 16];
+for i=1:size(windowSize,2);
+    for j=1:size(featureSample,2)
+        for k=1:Number
+            p{k}.colorImg = p{k}.Oimg;
+            p{k}.img = rgb2gray(p{k}.Oimg);
+            p{k}.feature = imageSystem.detectFeature(p{k}.img,featureSample(j),windowSize(i));
+            p{k} = imageSystem.cylinderProjection(p{k},focal);
+        end
+        result = imageSystem.blendingColor(p);
+        imwrite(result,strcat(PicNameS,'F',num2str(featureSample(j)),'W',num2str(windowSize(i)),'.jpg'));
+    end
+end
+%result = imageSystem.blendingColor();
 
 %offset = [-197, -4]
 %ttt = zeros(size(p0.img,1) + abs(offset(1,2)), size(p0.img,2) + abs(offset(1,1)),'uint8');
