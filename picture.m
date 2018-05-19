@@ -3,6 +3,7 @@ classdef picture
     %   Detailed explanation goes here
     
     properties
+        Oimg
         img
         feature
         colorImg
