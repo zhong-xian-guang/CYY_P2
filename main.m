@@ -6,14 +6,29 @@ clc;
 %feature matching(Harris or MSOP)
 %image matching
 %bundle adjustment and blending
-BasePath = 'data/scene1/';
-PicNameS = 'scene1 (';
-picNameE = ')';
-PicType = '.jpg';
-PicSNumber = 1;
-Number = 28;
+%test1
+if(0)
+    BasePath = 'data/scene1/';
+    PicNameS = 'scene1 (';
+    picNameE = ')';
+    PicType = '.jpg';
+    PicSNumber = 1;
+    Number = 28;
+    focal = 2355;
+end
+%test2
+if(1)
+    BasePath = 'data/scene2/';
+    PicNameS = 'scene2_';
+    picNameE = '';
+    PicType = '.jpg';
+    PicSNumber = 2;
+    Number = 7;
+    focal = 2781;
+end
+
 p = cell(Number,1);
-focal = 2355;
+
 for i=1:Number
     n = i+PicSNumber-1;
     if(0)
@@ -32,7 +47,7 @@ for i=1:Number
 end
 featureSample = [50 100 250 500];
 windowSize = [3 6 10 16];
-for i=1:size(windowSize,2);
+for i=1:size(windowSize,2)
     for j=1:size(featureSample,2)
         for k=1:Number
             p{k}.colorImg = p{k}.Oimg;
