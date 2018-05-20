@@ -3,10 +3,10 @@ classdef picture
     %   Detailed explanation goes here
     
     properties
-        Oimg
-        img
-        feature
-        colorImg
+        Oimg        %original image
+        img         %gray image after scaling
+        feature     %corner detecte features
+        colorImg    %color image after scaling
     end
     
     methods

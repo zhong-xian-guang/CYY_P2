@@ -3,21 +3,28 @@ classdef imageSystem
     %   Detailed explanation goes here
     
     methods(Static)
+        %read gray image from(not used)
         function img = readGrayImage(path)
             image = imread(path);
             img = rgb2gray(image);
         end
+        %read color image from path
         function img = readColorImage(path)
             img = imread(path);
         end
+        %stitching and blending the image(for gray image)
         function img = blending(p)
             %treat p as cell of picture with size n
             [h w] = size(p{1}.img);
             n = size(p,1);
+            %track all the images's offset relationship(noted that we assume that input pictures are sorted in order.)
             offsets = cell(n,1);
             offsets{1} = [0,0];
+            %to calculate how big the output img will be
             boundary = [0 0 ; 0 0];
             track = offsets{1};
+            %for each pics pair,calculate the offset relation and track the
+            %offset boundary
             for i=1:n-1
                 match = imageSystem.featureMatch(p{i},p{i+1});
                 offsets{i+1} = -imageSystem.ransac(p{i},p{i+1},match);
@@ -35,23 +42,28 @@ classdef imageSystem
                 end
                 track = track + offsets{i+1};
             end
+            %first pic will blend in start position, second pic will blend in
+            %start + offset position ......
             start = [-boundary(1,1),-boundary(1,2)];
+            %create img with enough size;
             img = uint8(zeros(h+boundary(2,2)-boundary(1,2),w+boundary(2,1)-boundary(1,1)));
             offset = start;
             for k=1:n
                 offset = offsets{k} + offset;
-                %img(offset(2):offset(2)+h , offset(1):offset(1)+w) = p{i}.img;
                 blendL = sqrt(offsets{k}(1)^2+offsets{k}(2)^2);
                 offsetX = offsets{k}(1);
                 [h w] = size(p{k}.img);
                 for i=1:h
                     for j=1:w
                         blend = 1;
+                        %we assume there is no black pixle in image,so we
+                        %threat black one as missing data;
                         if(p{k}.img(i,j)==0)
                         elseif(img(i+offset(2),j+offset(1)) == 0)
                             img(i+offset(2),j+offset(1)) = p{k}.img(i,j);
                         else
-                            
+                            %we only concern the x offset for blending
+                            %blending factor
                             if(offsetX >0 & j)
                                 blend = 1 - (j - offsetX < 0) * (j-offsetX)/(offsetX-w);
                             else
@@ -59,20 +71,23 @@ classdef imageSystem
                             end
                             img(i+offset(2),j+offset(1)) = p{k}.img(i,j) * blend + (1-blend) * img(i+offset(2),j+offset(1));
                         end
-                        
-                        
                     end
                 end
             end
         end
+        %stitching and blending the image(for color image)
         function img = blendingColor(p,scale)
             %treat p as cell of picture with size n
             [h w c] = size(p{1}.colorImg);
             n = size(p,1);
+            %track all the images's offset relationship(noted that we assume that input pictures are sorted in order.)
             offsets = cell(n,1);
             offsets{1} = [0,0];
+            %to calculate how big the output img will be
             boundary = [0 0 ; 0 0];
             track = offsets{1};
+            %for each pics pair,calculate the offset relation and track the
+            %offset boundary
             for i=1:n-1
                 match = imageSystem.featureMatch(p{i},p{i+1});
                 offsets{i+1} = -imageSystem.ransac(p{i},p{i+1},match) /scale;
@@ -90,7 +105,10 @@ classdef imageSystem
                 end
                 track = track + offsets{i+1};
             end
+            %first pic will blend in start position, second pic will blend in
+            %start + offset position ......
             start = [-boundary(1,1),-boundary(1,2)];
+            %create img with enough size;
             img = uint8(zeros(h+boundary(2,2)-boundary(1,2),w+boundary(2,1)-boundary(1,1),3));
             offset = start;
             for k=1:n
@@ -102,11 +120,14 @@ classdef imageSystem
                 for i=1:h
                     for j=1:w
                         blend = 1;
+                        %we assume there is no black pixle in image,so we
+                        %threat black one as missing data;
                         if((p{k}.colorImg(i,j,1)+p{k}.colorImg(i,j,2)+p{k}.colorImg(i,j,3))==0)
                         elseif(img(i+offset(2),j+offset(1)) == 0)
                             img(i+offset(2),j+offset(1),:) = p{k}.colorImg(i,j,:);
                         else
-                            
+                            %we only concern the x offset for blending
+                            %blending factor
                             if(offsetX >0 & j)
                                 blend = 1 - (j - offsetX < 0) * (j-offsetX)/(offsetX-w);
                             else
@@ -114,13 +135,15 @@ classdef imageSystem
                             end
                             img(i+offset(2),j+offset(1),:) = p{k}.colorImg(i,j,:) * blend + (1-blend) * img(i+offset(2),j+offset(1),:);
                         end
-                        
-                        
                     end
                 end
             end
         end
+        %cylinderProjection(color image)
         function ret = cylinderProjectionColor(p,f)
+            %use the equation from ppt
+            %x' = f*tan^-1(x/f)
+            %y' = f*(y/(sqrt(x^2+f^2)))
             ret = p;
             [h w c]= size(p.colorImg);
             ret.colorImg = uint8(zeros(h,w,3));
@@ -143,10 +166,11 @@ classdef imageSystem
                     ret.colorImg(ty,tx,:) = p.colorImg(i,j,:);
                 end
             end
-            
         end
+        %cylinderProjection(gray image & feature)
         function ret = cylinderProjection(p,f)
             ret = p;
+            %use the equation from ppt
             %x' = f*tan^-1(x/f)
             %y' = f*(y/(sqrt(x^2+f^2)))
             [h w]= size(p.img);
@@ -190,15 +214,7 @@ classdef imageSystem
                     ret.feature(i,2) = ty;
             end
         end
-        function ret = cropping(img)
-            %cut the image !!! YAYAYAY
-            [h w c] = size(img);
-            E = zeros(h,w);
-            E(:,:) = img(:,:,1)+img(:,:,2)+img(:,:,3);
-            boundary = [0,0;w,h];
-            minX = min(E);
-            minY = min(E');
-        end
+        %featureMatch
         function match = featureMatch(p0, p1)
             match = [];
             for i = 1 : size(p0.feature,1)
@@ -242,6 +258,7 @@ classdef imageSystem
                 end
             end
         end
+        %output matlab figure with feature infomation(not used)
         function showFeature(p)
             C = p.feature;
             figure;
@@ -249,11 +266,16 @@ classdef imageSystem
             hold on
             plot(C(:,1),C(:,2),'r*');
         end
+        %Harris Corner Detection
         function ret = detectFeature(image,N,r)
-            %1.color to grayscal
+            %N: how many feature we want
+            %r: windowSize ,6 will be good
+            
+            %if windowSize r is too large,it may not able to find enough feature N and have error
+            
+            %1.grayscal image
             I = image;
             %2.Spatial derivative calculation
-
             dx = [-1 0 1;-1 0 1;-1 0 1];
             dy = dx';
             Ix = conv2(I,dx,'same');
@@ -262,7 +284,6 @@ classdef imageSystem
             Ixx = conv2(Ix.^2,g,'same');
             Iyy = conv2(Iy.^2,g,'same');
             Ixy = conv2(Ix.*Iy,g,'same');
-            
             %3.Structure tensor setup
             
             %We skip the M matrix since we use "R(Ixx.*Iyy-Ixy.^2)-k*(Ixx+Iyy).^2;"
@@ -280,7 +301,7 @@ classdef imageSystem
             thrshold = 20;
             Mx = ordfilt2(R,r^2,ones(r));%file the maxman within the r
             Rt = (R==Mx)&(R>thrshold);
-            count = sum(sum(Rt));%exclusive the edge pixles
+            count = sum(sum(Rt));
             loop = 0;
             while(((count <minN) || (count > maxN)) && loop<100)
                 if(count > maxN)
@@ -289,10 +310,10 @@ classdef imageSystem
                     thrshold = thrshold * 0.5;
                 end
                 Rt = (R==Mx)&(R>thrshold);
-                count = sum(sum(Rt));%exclusive the edge pixles
+                count = sum(sum(Rt));
                 loop = loop+1;
             end
-            %6 output conor
+            %6 output result
             result = zeros(count,3);
             index = 1;
             for i=1:size(R,1)
@@ -307,12 +328,9 @@ classdef imageSystem
             end
             result = sortrows(result, 1);
             test = sortrows(result, 1);
-            if(size(result,1)-(minN-1)<= 0)
-                error = 1;
-            end
             ret =  result(size(result,1)-(minN-1):end,2:end);
         end
-
+        %ransac
         function offset = ransac(p0,p1,match)
             tempOffset = [];
             for i = 1 : size(match,1)
