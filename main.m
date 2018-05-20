@@ -48,10 +48,10 @@ for i=1:Number
     %tempP = imageSystem.cylinderProjectionColor(tempP,focal);
     p{i} = tempP;
 end
-result = imageSystem.blendingColor(p,scale);
-imwrite(result,strcat('noMore','.jpg'));
-featureSample =[1000 2000];
-windowSize = [6 8];
+%result = imageSystem.blendingColor(p,scale);
+%imwrite(result,strcat('noMore','.jpg'));
+featureSample =[1000];
+windowSize = [6];
 for i=1:size(windowSize,2)
     for j=1:size(featureSample,2)
         for k=1:Number
@@ -59,6 +59,7 @@ for i=1:size(windowSize,2)
             p{k}.img = rgb2gray(p{k}.colorImg);
             p{k}.feature = imageSystem.detectFeature(p{k}.img,featureSample(j),windowSize(i));
             p{k} = imageSystem.cylinderProjection(p{k},focal);
+            p{k} = imageSystem.cylinderProjectionColor(p{k},focal);
         end
         result = imageSystem.blendingColor(p,scale);
         imwrite(result,strcat(PicNameS,'F',num2str(featureSample(j)),'W',num2str(windowSize(i)),'.jpg'));
