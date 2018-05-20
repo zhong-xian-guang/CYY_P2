@@ -218,12 +218,14 @@ classdef imageSystem
         function match = featureMatch(p0, p1)
             match = [];
             for i = 1 : size(p0.feature,1)
+                % ignore feature on the side
                 if p0.feature(i,1) <= 1 || p0.feature(i,1) >= size(p0.img,2)
                     continue 
                 end
                 if p0.feature(i,2) <= 1 || p0.feature(i,2) >= size(p0.img,1)
                     continue 
                 end
+                % find min and second min match feature
                 X0 = p0.feature(i,1);
                 Y0 = p0.feature(i,2);
                 minIndex = -1;
@@ -253,6 +255,7 @@ classdef imageSystem
                         minSecondIndex = j;
                     end
                 end
+                % check min match feature is different enough
                 if minValue / minSecondValue < 0.6
                     match = [match; [i, minIndex]];
                 end
@@ -333,14 +336,17 @@ classdef imageSystem
         %ransac
         function offset = ransac(p0,p1,match)
             tempOffset = [];
+            % calculate each match feature offset
             for i = 1 : size(match,1)
                 index0 = match(i,1);
                 index1 = match(i,2);
                 tempOffset = [tempOffset;[p0.feature(index0,1) - p1.feature(index1,1) , p0.feature(index0,2) - p1.feature(index1,2)]];
             end
+            % find max inlier Count
             threshold = 10;
             maxCount = 0;
             for i = 1 :size(tempOffset,1)
+                % find inlier count
                 count = 0;
                 for j = 1 :size(tempOffset,1)
                     d = (tempOffset(i,1) - tempOffset(j,1)).^2 + (tempOffset(i,2) - tempOffset(j,2)).^2;
