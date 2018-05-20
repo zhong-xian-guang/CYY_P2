@@ -65,7 +65,7 @@ classdef imageSystem
                 end
             end
         end
-        function img = blendingColor(p)
+        function img = blendingColor(p,scale)
             %treat p as cell of picture with size n
             [h w c] = size(p{1}.colorImg);
             n = size(p,1);
@@ -75,7 +75,7 @@ classdef imageSystem
             track = offsets{1};
             for i=1:n-1
                 match = imageSystem.featureMatch(p{i},p{i+1});
-                offsets{i+1} = -imageSystem.ransac(p{i},p{i+1},match);
+                offsets{i+1} = -imageSystem.ransac(p{i},p{i+1},match) /scale;
                 if(track(1)+offsets{i+1}(1)>boundary(2,1))%max x boundary update
                     boundary(2,1) = track(1)+offsets{i+1}(1);
                 end
@@ -102,7 +102,7 @@ classdef imageSystem
                 for i=1:h
                     for j=1:w
                         blend = 1;
-                        if(p{k}.img(i,j)==0)
+                        if((p{k}.colorImg(i,j,1)+p{k}.colorImg(i,j,2)+p{k}.colorImg(i,j,3))==0)
                         elseif(img(i+offset(2),j+offset(1)) == 0)
                             img(i+offset(2),j+offset(1),:) = p{k}.colorImg(i,j,:);
                         else
@@ -120,6 +120,31 @@ classdef imageSystem
                 end
             end
         end
+        function ret = cylinderProjectionColor(p,f)
+            ret = p;
+            [h w c]= size(p.colorImg);
+            ret.colorImg = uint8(zeros(h,w,3));
+            cx = w/2;
+            cy = h/2;
+            for i=1:h
+                for j=1:w
+                    fx = j-cx;
+                    fy = i-cy;
+                    tx = f*atan(fx/f);
+                    ty = f*(fy/(sqrt(fx^2+f^2)));
+                    tx = tx+cx;
+                    ty = ty+cy;
+                    tx = floor(tx);
+                    ty = floor(ty);
+                    tx(tx<=0) = 1;
+                    ty(ty<=0) = 1;
+                    tx(tx>w) = w;
+                    ty(ty> h) = h;
+                    ret.colorImg(ty,tx,:) = p.colorImg(i,j,:);
+                end
+            end
+            
+        end
         function ret = cylinderProjection(p,f)
             ret = p;
             %x' = f*tan^-1(x/f)
@@ -128,6 +153,7 @@ classdef imageSystem
             cx = w/2;
             cy = h/2;
             ret.img = uint8(zeros(h,w));
+            
             for i=1:h
                 for j=1:w
                     fx = j-cx;
@@ -143,7 +169,7 @@ classdef imageSystem
                     tx(tx>w) = w;
                     ty(ty> h) = h;
                     ret.img(ty,tx) = p.img(i,j);
-                    ret.colorImg(ty,tx,:) = p.colorImg(ty,tx,:);
+                    %ret.colorImg(ty,tx,:) = p.colorImg(ty,tx,:);
                 end
             end
             for i=1:size(p.feature,1)

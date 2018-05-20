@@ -1,5 +1,5 @@
-clear;
-clc;
+%clear;
+%clc;
 %todo
 %load image
 %feature detection
@@ -7,6 +7,7 @@ clc;
 %image matching
 %bundle adjustment and blending
 %test1
+
 if(0)
     BasePath = 'data/scene1/';
     PicNameS = 'scene1 (';
@@ -23,12 +24,12 @@ if(1)
     picNameE = '';
     PicType = '.jpg';
     PicSNumber = 2;
-    Number = 7;
+    Number = 6;
     focal = 2781;
 end
 
 p = cell(Number,1);
-
+scale = 1;
 for i=1:Number
     n = i+PicSNumber-1;
     if(0)
@@ -38,35 +39,37 @@ for i=1:Number
     end
     S = strcat(BasePath,PicNameS,ns,picNameE,PicType);
     tempP.Oimg = imageSystem.readColorImage(S);
-    tempP.Oimg = imresize(tempP.Oimg,0.2);
-    tempP.colorImg = tempP.Oimg;
-    tempP.img = rgb2gray(tempP.Oimg);
-    tempP.feature = imageSystem.detectFeature(tempP.img,500,6);
-    tempP = imageSystem.cylinderProjection(tempP,focal);
+    %tempP.Oimg = imresize(tempP.Oimg,0.2);
+    %tempP.colorImg = tempP.Oimg;
+    %tempP.img = rgb2gray(tempP.colorImg);
+    %tempP.img = imresize(tempP.img,scale);
+    %tempP.feature = imageSystem.detectFeature(tempP.img,2000,8);
+    %tempP = imageSystem.cylinderProjection(tempP,focal);
+    %tempP = imageSystem.cylinderProjectionColor(tempP,focal);
     p{i} = tempP;
 end
-featureSample = [50 100 250 500];
-windowSize = [3 6 10 16];
+result = imageSystem.blendingColor(p,scale);
+imwrite(result,strcat('noMore','.jpg'));
+featureSample =[1000 2000];
+windowSize = [6 8];
 for i=1:size(windowSize,2)
     for j=1:size(featureSample,2)
         for k=1:Number
             p{k}.colorImg = p{k}.Oimg;
-            p{k}.img = rgb2gray(p{k}.Oimg);
+            p{k}.img = rgb2gray(p{k}.colorImg);
             p{k}.feature = imageSystem.detectFeature(p{k}.img,featureSample(j),windowSize(i));
             p{k} = imageSystem.cylinderProjection(p{k},focal);
         end
-        result = imageSystem.blendingColor(p);
+        result = imageSystem.blendingColor(p,scale);
         imwrite(result,strcat(PicNameS,'F',num2str(featureSample(j)),'W',num2str(windowSize(i)),'.jpg'));
     end
 end
-%result = imageSystem.blendingColor();
-
 %offset = [-197, -4]
 %ttt = zeros(size(p0.img,1) + abs(offset(1,2)), size(p0.img,2) + abs(offset(1,1)),'uint8');
 %ttt(5:516 , 198:581) = p0.img;
 %ttt(1:512 , 1:384) = p1.img;
 
-imshow(result);
+%imshow(result);
 
 %{
 tempImg = [p0.img,p1.img];
